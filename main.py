@@ -42,6 +42,7 @@ class User(ndb.Model):
     name = ndb.StringProperty()
     address = ndb.StringProperty()
     created = ndb.DateTimeProperty(auto_now_add=True)
+    otp = ndb.StringProperty()
 # [END User]
 
 # [START User]
@@ -82,21 +83,19 @@ def query_tickets(user_id):
     """
     query = Ticket.query(Ticket.customer == user_id).order(-Ticket.created)
     notes = query.fetch()
-
     return convert_ticket_to_json(notes)
 # [END query_database]
 
 
 # [START query_database]
-def query_users(user_id):
+def query_users(mobile_id):
     """Fetches all Users associated with user_id.
 
     Users are ordered them by date created, with most recent User added
     first.
     """
-    query = User.query(User.mobile_number==int(user_id)).order(-User.created)
-    notes = query.fetch()
-    return convert_user_to_json(notes)
+    query = User.query(User.mobile_number==int(mobile_id)).order(-User.created)
+    return query.fetch()
 # [END query_database]
 
 def convert_user_to_json(users):
@@ -170,6 +169,27 @@ def list_tickets(user_id):
 # [END list_tickets]
 
 
+# [START list_tickets]
+@app.route('/user/<user_id>/otp', methods=['POST'])
+def validate_tickets(user_id):
+    """Returns a list of Tickets added by the current Firebase user."""
+    user_key = ndb.Key(urlsafe=user_id)
+    data = request.get_json()
+    user = user_key.get()
+    otp =  data['otp_number']
+    if otp != None and otp == user.otp:
+        user.status = 'Verified'
+        user.put()
+    response = []
+    response.append({
+        'id': user.key.urlsafe(),
+        'name': user.name,
+        'status': user.status,
+        'created': user.created
+        })
+    return jsonify(response)
+# [END list_tickets]
+
 
 @app.route('/user/<user_id>', methods=['GET'])
 def list_user(user_id):
@@ -192,17 +212,28 @@ def create_dummy_user():
     user.mobile_number = 1234567890
     user.put()
 
+def send_otp(mobile_number):
+    return "1234"
+
 # [START create_user]
 @app.route('/user', methods=['POST', 'PUT'])
 def create_user():
 
     # [START create_entity]
     data = request.get_json()
-    user = User()
-    user.mobile_number = int(data['mobile_number'])
-    user.name = data['name']
-    user.address = data['address'] 
-    user.status = 'unverified'
+    users =  query_users(data['mobile_number'])
+    if len(users) > 0:
+        user = users[0]
+    else:
+        user = User()
+        user.mobile_number = int(data['mobile_number'])
+    if data['name'] != None:
+        user.name = data['name']
+    if data['address'] != None:
+        user.address = data['address'] 
+    if user.status == None:
+        user.status = 'unverified'
+    user.otp = send_otp(user.mobile_number)
     user.put()
     response = []
     response.append({
