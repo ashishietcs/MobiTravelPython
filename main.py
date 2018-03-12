@@ -67,8 +67,8 @@ def convert_ticket_to_json(tickets):
             'id': ticket.key.urlsafe(),
             'from': ticket.from_loc,
             'to': ticket.to_loc,
-            'persons': ticket.no_persons,
-            'validity': ticket.valid,
+            'persons': str(ticket.no_persons),
+            'valid': str(ticket.valid),
             'created': ticket.created
         })
     logging.info("Ticket created "+str(ticket_messages))
@@ -131,7 +131,7 @@ def create_ticket(user_id):
     # [START create_entity]
     data = request.get_json()
     tkt = Ticket()
-    tkt.no_persons = int(data['no_persons'])
+    tkt.no_persons = int(data['persons'])
     tkt.from_loc = data['from']
     tkt.to_loc = data['to'] 
     tkt.valid = True
@@ -231,8 +231,7 @@ def create_user():
         user.name = data['name']
     if data['address'] != None:
         user.address = data['address'] 
-    if user.status == None:
-        user.status = 'unverified'
+    user.status = 'unverified'
     user.otp = send_otp(user.mobile_number)
     user.put()
     response = []
