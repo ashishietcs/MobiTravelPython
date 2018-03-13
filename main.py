@@ -98,6 +98,7 @@ def query_users(mobile_id):
     return query.fetch()
 # [END query_database]
 
+
 def convert_user_to_json(users):
     user_messages = []
     logging.info("No of users "+str(len(users)))
@@ -157,6 +158,16 @@ def create_dummy_ticket(user_id):
     tkt.valid =  True
     tkt.customer = user_id
     tkt_key = tkt.put()
+
+
+# [START validate_tickets]
+@app.route('/ticket/<ticket_id>', methods=['GET'])
+def list_tickets(user_id, ticket_id):
+    """Returns a list of Tickets added by the current Firebase user."""
+    ticket_key = ndb.Key(urlsafe=ticket_id)
+    ticket = ticket_key.get()
+    return str(ticket.valid)
+# [END list_tickets]
 
 # [START list_tickets]
 @app.route('/user/<user_id>/ticket', methods=['GET'])
