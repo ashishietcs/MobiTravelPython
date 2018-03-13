@@ -162,7 +162,7 @@ def create_dummy_ticket(user_id):
 
 # [START validate_tickets]
 @app.route('/ticket/<ticket_id>', methods=['GET'])
-def list_tickets(user_id, ticket_id):
+def check_tickets(ticket_id):
     """Returns a list of Tickets added by the current Firebase user."""
     ticket_key = ndb.Key(urlsafe=ticket_id)
     ticket = ticket_key.get()
