@@ -51,9 +51,9 @@ class Ticket(ndb.Model):
     Key is user id from decrypted token.
     """
     customer = ndb.KeyProperty(kind=User)
-    from_loc = ndb.StringProperty(required=True)
+    from_loc = ndb.StringProperty()
     no_persons = ndb.IntegerProperty(required=True)
-    to_loc = ndb.StringProperty(required=True)
+    to_loc = ndb.StringProperty()
     valid = ndb.BooleanProperty(required=True)
     created = ndb.DateTimeProperty(auto_now_add=True)
 # [END User]
@@ -132,9 +132,14 @@ def create_ticket(user_id):
     # [START create_entity]
     data = request.get_json()
     tkt = Ticket()
-    tkt.no_persons = int(data['persons'])
-    tkt.from_loc = data['from']
-    tkt.to_loc = data['to'] 
+    if 'persons' in data:
+        tkt.no_persons = int(data['persons'])
+    else:
+        tkt.no_persons = 1
+    if 'from' in data:
+        tkt.from_loc = data['from']
+    if 'to' in data:
+        tkt.to_loc = data['to'] 
     tkt.valid = True
     tkt.customer = user_key
     tkt_key = tkt.put()
@@ -232,15 +237,18 @@ def create_user():
 
     # [START create_entity]
     data = request.get_json()
-    users =  query_users(data['mobile_number'])
+    if 'mobile_number' in data:
+        users =  query_users(data['mobile_number'])
+    else:
+        return "Mandatry Mobile Number is missing."
     if len(users) > 0:
         user = users[0]
     else:
         user = User()
         user.mobile_number = int(data['mobile_number'])
-    if data['name'] != None:
+    if 'name' in data:
         user.name = data['name']
-    if data['address'] != None:
+    if 'address' in data:
         user.address = data['address'] 
     user.status = 'unverified'
     user.otp = send_otp(user.mobile_number)
