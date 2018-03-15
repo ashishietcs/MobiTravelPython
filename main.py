@@ -40,6 +40,7 @@ class User(ndb.Model):
     status = ndb.StringProperty()
     mobile_number = ndb.IntegerProperty(required=True)
     name = ndb.StringProperty()
+    role = ndb.StringProperty()
     address = ndb.StringProperty()
     created = ndb.DateTimeProperty(auto_now_add=True)
     otp = ndb.StringProperty()
@@ -106,6 +107,7 @@ def convert_user_to_json(users):
         user_messages.append({
             'id': user.key.urlsafe(),
             'name': user.name,
+            'role': user.role,
             'status': user.status,
             'created': user.created
         })
@@ -176,7 +178,7 @@ def check_tickets(ticket_id):
 
 # [START validate_tickets]
 @app.route('/ticket/<ticket_id>', methods=['POST'])
-def check_tickets(ticket_id):
+def checkin_tickets(ticket_id):
     """Returns a list of Tickets added by the current Firebase user."""
     ticket_key = ndb.Key(urlsafe=ticket_id)
     ticket = ticket_key.get()
@@ -190,7 +192,7 @@ def check_tickets(ticket_id):
 
 # [START validate_tickets]
 @app.route('/ticket/<ticket_id>', methods=['PUT'])
-def check_tickets(ticket_id):
+def checkout_tickets(ticket_id):
     """Returns a list of Tickets added by the current Firebase user."""
     ticket_key = ndb.Key(urlsafe=ticket_id)
     ticket = ticket_key.get()
@@ -228,6 +230,7 @@ def validate_tickets(user_id):
     response.append({
         'id': user.key.urlsafe(),
         'name': user.name,
+        'role': user.role,
         'status': user.status,
         'created': user.created
         })
@@ -246,6 +249,7 @@ def list_user(user_id):
     response.append({
         'id': user.key.urlsafe(),
         'name': user.name,
+        'role': user.role,
         'status': user.status,
         'created': user.created
         })
@@ -285,6 +289,7 @@ def create_user():
     response.append({
         	'id': user.key.urlsafe(),
             'name': user.name,
+            'role': user.role,
             'status': user.status,
             'created': user.created
      })
