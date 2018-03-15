@@ -174,6 +174,34 @@ def check_tickets(ticket_id):
     return str(ticket.valid)
 # [END list_tickets]
 
+# [START validate_tickets]
+@app.route('/ticket/<ticket_id>', methods=['POST'])
+def check_tickets(ticket_id):
+    """Returns a list of Tickets added by the current Firebase user."""
+    ticket_key = ndb.Key(urlsafe=ticket_id)
+    ticket = ticket_key.get()
+    if 'from' in data:
+        tkt.from_loc = data['from']
+        ticket.put()
+    else:
+        return "From field is mandatory for checkin."
+    return str(ticket.valid)
+# [END list_tickets]
+
+# [START validate_tickets]
+@app.route('/ticket/<ticket_id>', methods=['PUT'])
+def check_tickets(ticket_id):
+    """Returns a list of Tickets added by the current Firebase user."""
+    ticket_key = ndb.Key(urlsafe=ticket_id)
+    ticket = ticket_key.get()
+    if 'to' in data:
+        tkt.to_loc = data['to'] 
+        ticket.put()
+    else:
+        return "To field is mandatory for checkout."
+    return str(ticket.valid)
+# [END list_tickets]
+
 # [START list_tickets]
 @app.route('/user/<user_id>/ticket', methods=['GET'])
 def list_tickets(user_id):
