@@ -55,7 +55,8 @@ class Ticket(ndb.Model):
     from_loc = ndb.StringProperty()
     no_persons = ndb.IntegerProperty(required=True)
     to_loc = ndb.StringProperty()
-    valid = ndb.BooleanProperty(required=True)
+    status = ndb.StringProperty(required=True)
+    amount = ndb.StringProperty()
     created = ndb.DateTimeProperty(auto_now_add=True)
 # [END User]
 
@@ -69,7 +70,7 @@ def convert_ticket_to_json(tickets):
             'from': ticket.from_loc,
             'to': ticket.to_loc,
             'persons': str(ticket.no_persons),
-            'valid': str(ticket.valid),
+            'status': ticket.status,
             'created': ticket.created
         })
     logging.info("Ticket created "+str(ticket_messages))
@@ -142,7 +143,7 @@ def create_ticket(user_id):
         tkt.from_loc = data['from']
     if 'to' in data:
         tkt.to_loc = data['to'] 
-    tkt.valid = True
+    tkt.status = "valid"
     tkt.customer = user_key
     tkt_key = tkt.put()
     response = []
@@ -151,7 +152,7 @@ def create_ticket(user_id):
         'from': tkt.from_loc,
         'to':tkt.to_loc,
         'persons':str(tkt.no_persons),
-        'valid':str(tkt.valid),
+        'status':tkt.status,
         'created': tkt.created
      })
     return jsonify(response)
@@ -162,7 +163,7 @@ def create_dummy_ticket(user_id):
     tkt.no_persons = int(1)
     tkt.from_loc = 'dwarka'
     tkt.to_loc = 'gurgaon' 
-    tkt.valid =  True
+    tkt.status = 'valid' 
     tkt.customer = user_id
     tkt_key = tkt.put()
 
@@ -173,7 +174,7 @@ def check_tickets(ticket_id):
     """Returns a list of Tickets added by the current Firebase user."""
     ticket_key = ndb.Key(urlsafe=ticket_id)
     ticket = ticket_key.get()
-    return str(ticket.valid)
+    return ticket.status
 # [END list_tickets]
 
 # [START validate_tickets]
@@ -182,12 +183,17 @@ def checkin_tickets(ticket_id):
     """Returns a list of Tickets added by the current Firebase user."""
     ticket_key = ndb.Key(urlsafe=ticket_id)
     ticket = ticket_key.get()
+    data = request.get_json()
     if 'from' in data:
-        tkt.from_loc = data['from']
-        ticket.put()
+        if ticket.status == "valid":
+            ticket.from_loc = data['from']
+            ticket.status ="transit" 
+            ticket.put()
+        else:
+            return "Ticket is already used/invalid."
     else:
         return "From field is mandatory for checkin."
-    return str(ticket.valid)
+    return ticket.status
 # [END list_tickets]
 
 # [START validate_tickets]
@@ -196,12 +202,18 @@ def checkout_tickets(ticket_id):
     """Returns a list of Tickets added by the current Firebase user."""
     ticket_key = ndb.Key(urlsafe=ticket_id)
     ticket = ticket_key.get()
+    data = request.get_json()
     if 'to' in data:
-        tkt.to_loc = data['to'] 
-        ticket.put()
+        if ticket.status == "transit":
+            ticket.to_loc = data['to'] 
+            ticket.status ="completed" 
+            ticket.put()
+        else:
+            return "Ticket is not used/invalid."
+
     else:
         return "To field is mandatory for checkout."
-    return str(ticket.valid)
+    return ticket.status
 # [END list_tickets]
 
 # [START list_tickets]
