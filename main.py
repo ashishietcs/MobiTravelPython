@@ -174,7 +174,7 @@ def check_tickets(ticket_id):
     """Returns a list of Tickets added by the current Firebase user."""
     ticket_key = ndb.Key(urlsafe=ticket_id)
     ticket = ticket_key.get()
-    return ticket.status
+    return jsonify(status=ticket.status)
 # [END list_tickets]
 
 # [START validate_tickets]
@@ -184,16 +184,18 @@ def checkin_tickets(ticket_id):
     ticket_key = ndb.Key(urlsafe=ticket_id)
     ticket = ticket_key.get()
     data = request.get_json()
+    status = ""
     if 'from' in data:
         if ticket.status == "valid":
             ticket.from_loc = data['from']
             ticket.status ="transit" 
             ticket.put()
+            status = ticket.status
         else:
-            return "Ticket is already used/invalid."
+            status = "Ticket is already used/invalid."
     else:
-        return "From field is mandatory for checkin."
-    return ticket.status
+        status = "From field is mandatory for checkin."
+    return jsonify(status=status)
 # [END list_tickets]
 
 # [START validate_tickets]
@@ -203,17 +205,19 @@ def checkout_tickets(ticket_id):
     ticket_key = ndb.Key(urlsafe=ticket_id)
     ticket = ticket_key.get()
     data = request.get_json()
+    response = ""
     if 'to' in data:
         if ticket.status == "transit":
             ticket.to_loc = data['to'] 
             ticket.status ="completed" 
             ticket.put()
+            response = ticket.status
         else:
-            return "Ticket is not used/invalid."
+            response = "Ticket is not used/invalid."
 
     else:
-        return "To field is mandatory for checkout."
-    return ticket.status
+        response = "To field is mandatory for checkout."
+    return jsonify(status=response)
 # [END list_tickets]
 
 # [START list_tickets]
