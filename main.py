@@ -15,17 +15,20 @@
 # [START app]
 import logging
 import random
+from twilio.rest import Client
 
 from flask import Flask, jsonify, request
 import flask_cors
 from google.appengine.ext import ndb
 import google.auth.transport.requests
 import google.oauth2.id_token
-import requests_toolbelt.adapters.appengine
+
+from requests_toolbelt.adapters import appengine
+appengine.monkeypatch(validate_certificate=False)
 
 # Use the App Engine Requests adapter. This makes sure that Requests uses
 # URLFetch.
-requests_toolbelt.adapters.appengine.monkeypatch()
+#appengine.monkeypatch()
 HTTP_REQUEST = google.auth.transport.requests.Request()
 
 app = Flask(__name__)
@@ -111,6 +114,7 @@ def convert_user_to_json(users):
             'name': user.name,
             'role': user.role,
             'status': user.status,
+            'address': user.address,
             'created': user.created
         })
     logging.info("User message created "+str(user_messages))
@@ -249,6 +253,7 @@ def validate_tickets(user_id):
         'name': user.name,
         'role': user.role,
         'status': user.status,
+        'address': user.address,
         'created': user.created
         })
     return jsonify(response)
@@ -268,6 +273,7 @@ def list_user(user_id):
         'name': user.name,
         'role': user.role,
         'status': user.status,
+        'address': user.address,
         'created': user.created
         })
     return jsonify(response)
@@ -277,7 +283,7 @@ def create_dummy_user():
     user.mobile_number = 1234567890
     user.put()
 
-def send_otp(User user):
+def send_otp( user):
     if user.mobile_number != '9962326263':
         return "1234"
     else:
@@ -321,6 +327,7 @@ def create_user():
             'name': user.name,
             'role': user.role,
             'status': user.status,
+            'address': user.address,
             'created': user.created
      })
     return jsonify(response)
