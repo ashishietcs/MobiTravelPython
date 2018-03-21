@@ -14,6 +14,7 @@
 
 # [START app]
 import logging
+import random
 
 from flask import Flask, jsonify, request
 import flask_cors
@@ -276,8 +277,21 @@ def create_dummy_user():
     user.mobile_number = 1234567890
     user.put()
 
-def send_otp(mobile_number):
-    return "1234"
+def send_otp(User user):
+    if user.mobile_number != '9962326263':
+        return "1234"
+    else:
+        return send_twilio_otp(user.mobile_number)
+
+def send_twilio_otp(mobile_number):
+    # replace with your credentials from: https://www.twilio.com/user/account
+    account_sid = ""
+    auth_token = ""
+    client = Client(account_sid, auth_token)
+    to_new = "+" + mobile_number
+    otp_value = random.randint(1000,9999)
+    rv = client.messages.create(to=to_new, from_="+18162811509", body="Welcome MobiTravel 1.0. OTP for your login is "+otp_value)
+    return otp_value
 
 # [START create_user]
 @app.route('/user', methods=['POST', 'PUT'])
@@ -299,7 +313,7 @@ def create_user():
     if 'address' in data:
         user.address = data['address'] 
     user.status = 'unverified'
-    user.otp = send_otp(user.mobile_number)
+    user.otp = send_otp(user)
     user.put()
     response = []
     response.append({
